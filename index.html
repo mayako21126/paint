@@ -79,10 +79,11 @@
 <body>
 <div id="main"></div>
 <canvas id="canvas" width="600" height="500"
-        style="border:1px solid #999;position:absolute;top:50px;left:50px;"></canvas>
+        style="border:1px solid #999;position:absolute;top:50px;left:50px;z-index: 0"></canvas>
 <canvas id="canvas2" width="600" height="500"
-        style="border:1px solid #999;position:absolute;top:50px;left:50px;"></canvas>
-
+        style="border:1px solid #999;position:absolute;top:50px;left:50px;z-index: 2"></canvas>
+<canvas id="mask" width="600" height="500"
+        style="border:1px solid #999;position:absolute;top:50px;left:50px;z-index: 1"></canvas>
 <!--<canvas id="canvas3" width="600" height="500"-->
         <!--style="border:1px solid #999;position:absolute;top:500px;left:650px;"></canvas>-->
 <span class="btn" onClick="$('#forbiden_back').fadeIn(300)" style="background-image: url(img/open_url.png)"></span>

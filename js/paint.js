@@ -97,6 +97,10 @@ function saveAsLocalImage (id) {
     window.location.href=image; // it will save locally
 }
 var canvasStack=[];
+var oriTmp;
+var mask=false;
+var mainId='canvas';
+var maskId='mask';
 $(document).ready(function () {
     document.ondragstart = function () {
         return false;
@@ -138,8 +142,8 @@ $(document).ready(function () {
             textInput(textValue,origin.x-5,origin.y-15,context2,context)
         }
         if(type==0||type==2||type==5){
-            console.log('x')
-            Csave('canvas');
+
+            Csave(0);
         }
 
     });
@@ -154,8 +158,8 @@ $(document).ready(function () {
             context2.clearRect(0, 0, canvas_size.x, canvas_size.y);
             end.x = event.clientX - canvas_offset.x;
             end.y = event.clientY - canvas_offset.y;
-            console.log('3')
-            Csave('canvas');
+
+            Csave(0);
             draw(context);
         } else{
             //Csave('canvas');
@@ -194,7 +198,6 @@ $(document).ready(function () {
             draw(context);
         }
     });
-
     var img = new Image();
     img.src = "img/color.bmp";
     $(img).bind("load", function () {
@@ -228,12 +231,10 @@ $(document).ready(function () {
             change_attr(-1, -1, "rgb(" + r + "," + g + "," + b + ")");
         });
     });
-
     $("#close_window").bind("click", function () {
         $("#forbiden_back").fadeOut(300);
         $("#pic_url").val('');
     });
-
     $("#open_pic").bind("click", function () {
         $("#forbiden_back").fadeOut(300);
         open_img($("#pic_url").val());
@@ -255,7 +256,6 @@ $(document).ready(function () {
             $(document).unbind("mouseup", unbind);
         });
     });
-
     $("#r_channel_bar").bind("mousedown", function (event) {
         var thumb = $("#r_channel_thumb");
         var main_w = $(this).width();
@@ -304,11 +304,10 @@ function textInput(value,l,t,canvas2,canvas) {
     x.keypress(function (event) {
         if (event.which == 13) {
             var y = x.val();
-            console.log(y)
             value=y;
             canvas.fillStyle = "white";
             canvas2.fillStyle = "white";
-            Csave('canvas');
+            Csave(0);
             writeTextOnCanvas(canvas,textHeight,textLength,y,parseInt(x.css('left'))+3,parseInt(x.css('top'))+21)
             //writeTextOnCanvas(canvas2,textHeight,textLength,y,parseInt(x.css('left'))+3,parseInt(x.css('top'))+21)
             //canvas.fillText(y,parseInt(x.css('left'))+3,parseInt(x.css('top'))+21)
@@ -326,10 +325,17 @@ function textInput(value,l,t,canvas2,canvas) {
 
 }
 
-function Csave(id){
+function Csave(t){
+    var id;
+    if(mask==true){
+        id=maskId;
+    }else{
+        id=mainId;
+    }
+    mask=false;
     var canvas = document.getElementById(id);
     var context = canvas.getContext('2d');
-    var tmp = context.getImageData(0,0,canvas.width,canvas.height);
+    var tmp = [context.getImageData(0,0,canvas.width,canvas.height),t]
     canvasStack.push(tmp)
 }
 function Crestore(id){
@@ -337,7 +343,12 @@ function Crestore(id){
     var context = canvas.getContext('2d');
     if(canvasStack.length>0){
         var tmp = canvasStack.pop();
-        context.putImageData(tmp,0,0);
+        if(tmp[1]==0){
+            context.putImageData(tmp[0],0,0);
+        }else{
+            document.getElementById('mask').getContext('2d').putImageData(tmp[0],0,0);
+        }
+
         //document.getElementById('canvas3').getContext('2d').putImageData(tmp,0,0);
     }
 
@@ -437,7 +448,7 @@ function fill_canvas(col, orix, oriy, w, h) {
 }
 
 function gaussian() {
-    Csave('canvas');
+    Csave(0);
     var pi = 3.141592654,//get gaussian_array
         e = 2.718281828459,
         g = 2,
@@ -472,9 +483,12 @@ function gaussian() {
 }
 
 function change_channel() {
-    Csave('canvas');
-    var canvas = document.getElementById('canvas');
+    Csave(1);
+    var canvas = document.getElementById('mask');
     var context = canvas.getContext('2d');
+    context.globalAlpha=0.5;
+    context.fillStyle="white";
+    context.fillRect(0,0,canvas.width,canvas.height);
     var can_data = context.getImageData(0,0,canvas.width,canvas.height);
     //document.getElementById('canvas3').getContext('2d').putImageData(can_data,0,0);
    // can_data = context.getImageData(0, 0, canvas.width, canvas.height);
@@ -487,6 +501,7 @@ function change_channel() {
         }
     }
     context.putImageData(can_data, 0, 0);
+    mask=true;
 }
 
 function get_gaussian_average(can_data, g, gaussian_array, channel, x, y) {
